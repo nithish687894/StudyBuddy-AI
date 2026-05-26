@@ -374,7 +374,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const apiKey = geminiKeyInput.value.trim() || DEFAULT_API_KEY;
     const useLiveAI = apiKey.length > 0;
 
-    // 1. Move to Processing Screen
+    // 1. Trigger camera flash shutter animation
+    const shutter = document.getElementById("camera-shutter");
+    if (shutter) {
+      shutter.style.opacity = "1";
+      setTimeout(() => {
+        shutter.style.opacity = "0";
+      }, 150);
+    }
+
+    // 2. Move to Processing Screen
     screenCamera.classList.remove("active");
     screenResults.classList.remove("active");
     screenProcessing.classList.add("active");
@@ -631,8 +640,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  function triggerConfetti() {
+    const resultsContainer = document.getElementById("screen-results");
+    if (!resultsContainer) return;
+
+    const colors = ["#38bdf8", "#facc15", "#4ade80", "#f87171", "#a78bfa", "#fb923c"];
+    
+    for (let i = 0; i < 45; i++) {
+      const p = document.createElement("div");
+      p.style.position = "absolute";
+      p.style.width = `${Math.random() * 8 + 4}px`;
+      p.style.height = `${Math.random() * 8 + 4}px`;
+      p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      p.style.borderRadius = "50%";
+      p.style.top = "-10px";
+      p.style.left = `${Math.random() * 100}%`;
+      p.style.opacity = Math.random() * 0.7 + 0.3;
+      p.style.zIndex = "10";
+      p.style.pointerEvents = "none";
+      
+      const duration = Math.random() * 2 + 1.5;
+      const horizontalOffset = (Math.random() - 0.5) * 80;
+      
+      p.style.transition = `all ${duration}s cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+      resultsContainer.appendChild(p);
+      
+      setTimeout(() => {
+        p.style.transform = `translate(${horizontalOffset}px, 500px) rotate(${Math.random() * 360}deg)`;
+        p.style.opacity = "0";
+      }, 50);
+      
+      setTimeout(() => {
+        p.remove();
+      }, duration * 1000 + 100);
+    }
+  }
+
   function showQuizResults() {
     const data = activeDataObj ? activeDataObj : chapterData[activeChapterKey];
+    
+    // Trigger dynamic confetti celebrations
+    triggerConfetti();
     
     quizProgressFill.style.width = "100%";
     quizQuestionText.style.display = "none";
@@ -754,11 +802,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const netProfit = grossRevenue - totalCost;
     dispProfit.innerText = `₹${netProfit.toLocaleString('en-IN')}`;
 
-    // Style Profit text dynamically (Red if loss, Green if profit)
+    // Style Profit text dynamically (Red if loss, Green if profit) and update SVG Gauge
+    const marginPercent = grossRevenue > 0 ? Math.round((netProfit / grossRevenue) * 100) : 0;
+    const fillGauge = document.getElementById("gauge-fill");
+    const textGauge = document.getElementById("gauge-text");
+
     if (netProfit < 0) {
       dispProfit.className = "metric-value text-red";
+      if (fillGauge) {
+        fillGauge.setAttribute("stroke", "var(--color-red)");
+        fillGauge.setAttribute("stroke-dasharray", `${Math.min(Math.abs(marginPercent), 100)}, 100`);
+      }
+      if (textGauge) textGauge.innerText = `${marginPercent}%`;
     } else {
       dispProfit.className = "metric-value text-green";
+      if (fillGauge) {
+        fillGauge.setAttribute("stroke", "var(--color-green)");
+        fillGauge.setAttribute("stroke-dasharray", `${Math.min(marginPercent, 100)}, 100`);
+      }
+      if (textGauge) textGauge.innerText = `+${marginPercent}%`;
     }
 
     // 4. Break-even Subscribers
