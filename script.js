@@ -367,7 +367,11 @@ document.addEventListener("DOMContentLoaded", () => {
       textToAnalyze = chapterData[activeChapterKey].pageText;
     }
 
-    const apiKey = geminiKeyInput.value.trim();
+    // OPTIONAL: Paste your free Gemini API Key here to make the website work with real AI 
+    // automatically for everyone (including your teacher!) without entering a key in the panel.
+    const DEFAULT_API_KEY = ""; 
+    
+    const apiKey = geminiKeyInput.value.trim() || DEFAULT_API_KEY;
     const useLiveAI = apiKey.length > 0;
 
     // 1. Move to Processing Screen
