@@ -77,16 +77,32 @@
           </div>
         </div>
 
+        <!-- Dynamic AI Key Settings (Glassmorphism card) -->
+        <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: var(--border-radius-sm); padding: 0.75rem; margin-bottom: 0.5rem;">
+          <label style="font-size: 0.8rem; font-weight: 700; color: var(--color-blue); display: flex; align-items: center; justify-content: space-between;">
+            <span><i class="fa-solid fa-key"></i> Go Real-Time (Gemini API Key)</span>
+            <a href="https://aistudio.google.com/" target="_blank" style="font-size: 0.7rem; color: var(--color-yellow); text-decoration: underline;">Get Free Key</a>
+          </label>
+          <input type="password" id="gemini-key" placeholder="Paste your Gemini API Key here..." style="width: 100%; padding: 0.5rem; margin-top: 0.35rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: #fff; font-size: 0.8rem; outline: none;">
+        </div>
+
         <div class="form-group">
-          <label for="chapter-select"><i class="fa-solid fa-book"></i> Select Textbook Chapter</label>
+          <label for="chapter-select"><i class="fa-solid fa-book"></i> Select Input Mode</label>
           <select id="chapter-select">
-            <option value="science-10">Science (Class 10) - Chemical Reactions & Equations</option>
-            <option value="history-10">Social Science (Class 10) - Nationalism in Europe</option>
-            <option value="english-10">English Literature (Class 10) - A Letter to God</option>
+            <option value="science-10">Science (Class 10 CBSE) - Chemical Reactions</option>
+            <option value="history-10">Social Science (Class 10 CBSE) - Nationalism in Europe</option>
+            <option value="english-10">English (Class 10 CBSE) - A Letter to God</option>
+            <option value="custom">✍️ [Custom Mode] Scan Any Text (Real Live AI!)</option>
           </select>
         </div>
 
-        <div class="textbook-preview">
+        <!-- Custom Input text box (Hidden by default unless Custom mode is selected) -->
+        <div class="form-group hidden" id="custom-text-group">
+          <label for="custom-text-input"><i class="fa-solid fa-keyboard"></i> Paste Textbook Paragraphs</label>
+          <textarea id="custom-text-input" rows="4" placeholder="Paste any textbook paragraphs here (e.g. Science, Math, History)... StudyBuddy AI will read and summarize it live!" style="width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); color: #fff; font-family: var(--font-body); font-size: 0.85rem; outline: none; resize: vertical;"></textarea>
+        </div>
+
+        <div class="textbook-preview" id="preview-container">
           <div class="preview-header">
             <span><i class="fa-solid fa-camera"></i> Textbook Page Snapshot</span>
             <span class="page-num">Page 4</span>

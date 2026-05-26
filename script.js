@@ -213,6 +213,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const chapterSelect = document.getElementById("chapter-select");
   const textbookPageContent = document.getElementById("textbook-page-content");
   const scanBtn = document.getElementById("scan-btn");
+  
+  // Dynamic Real-Time Nodes
+  const geminiKeyInput = document.getElementById("gemini-key");
+  const customTextGroup = document.getElementById("custom-text-group");
+  const customTextInput = document.getElementById("custom-text-input");
+  const previewContainer = document.getElementById("preview-container");
 
   // Phone Mockup Screens
   const screenCamera = document.getElementById("screen-camera");
@@ -290,6 +296,16 @@ document.addEventListener("DOMContentLoaded", () => {
     completed: false
   };
 
+  // Load saved Gemini Key if exists
+  if (localStorage.getItem("gemini_api_key")) {
+    geminiKeyInput.value = localStorage.getItem("gemini_api_key");
+  }
+
+  // Save Gemini Key when typing
+  geminiKeyInput.addEventListener("input", (e) => {
+    localStorage.setItem("gemini_api_key", e.target.value.trim());
+  });
+
   // Set initial textbook text
   updateTextbookPreview();
   // Set initial financials
@@ -304,7 +320,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   chapterSelect.addEventListener("change", (e) => {
     activeChapterKey = e.target.value;
-    updateTextbookPreview();
+    if (activeChapterKey === "custom") {
+      previewContainer.classList.add("hidden");
+      customTextGroup.classList.remove("hidden");
+    } else {
+      previewContainer.classList.remove("hidden");
+      customTextGroup.classList.add("hidden");
+      updateTextbookPreview();
+    }
   });
 
   function updateTextbookPreview() {
@@ -331,21 +354,36 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Scan & Summarize Simulation Trigger
-  scanBtn.addEventListener("click", () => {
+  scanBtn.addEventListener("click", async () => {
+    // Determine active text input
+    let textToAnalyze = "";
+    if (activeChapterKey === "custom") {
+      textToAnalyze = customTextInput.value.trim();
+      if (!textToAnalyze) {
+        alert("Please paste some textbook paragraphs into the custom text box before scanning!");
+        return;
+      }
+    } else {
+      textToAnalyze = chapterData[activeChapterKey].pageText;
+    }
+
+    const apiKey = geminiKeyInput.value.trim();
+    const useLiveAI = apiKey.length > 0;
+
     // 1. Move to Processing Screen
     screenCamera.classList.remove("active");
     screenResults.classList.remove("active");
     screenProcessing.classList.add("active");
     
-    appCurrentBoard.innerText = `${activeBoard} Student Portal`;
+    appCurrentBoard.innerText = `CBSE Student Portal`;
 
     // 2. Perform step-by-step loading effects
     const steps = [
       { text: "Capturing page with High-Res OCR...", time: 0 },
       { text: "Extracting textbook paragraphs...", time: 400 },
-      { text: `Structuring prompts for ${activeBoard} Syllabus...`, time: 800 },
-      { text: "Engaging Gemini AI Large Language Model...", time: 1200 },
-      { text: "Formatting revision guides & quizzes...", time: 1600 }
+      { text: useLiveAI ? "Establishing secure Google Cloud connection..." : "Structuring prompts for CBSE Syllabus...", time: 800 },
+      { text: useLiveAI ? "Generating Dynamic CBSE Summary via Gemini..." : "Engaging Gemini AI Large Language Model...", time: 1200 },
+      { text: useLiveAI ? "Constructing Live Board-Aligned MCQ Quiz..." : "Formatting revision guides & quizzes...", time: 1600 }
     ];
 
     steps.forEach(step => {
@@ -354,33 +392,168 @@ document.addEventListener("DOMContentLoaded", () => {
       }, step.time);
     });
 
-    // 3. Populate and show results screen
-    setTimeout(() => {
-      populateResults();
-      screenProcessing.classList.remove("active");
-      screenResults.classList.add("active");
-      
-      // Update app state visuals
-      appNavHome.classList.remove("active");
-      appNavScan.classList.add("active");
+    if (useLiveAI) {
+      try {
+        // Call actual live Gemini API
+        const generatedData = await callGeminiAPI(apiKey, textToAnalyze);
+        
+        // Populate dynamically
+        setTimeout(() => {
+          populateResults(generatedData);
+          screenProcessing.classList.remove("active");
+          screenResults.classList.add("active");
+          
+          appNavHome.classList.remove("active");
+          appNavScan.classList.add("active");
 
-      // Auto-scroll on mobile layout so results are visible instantly
-      if (window.innerWidth <= 968) {
-        document.querySelector(".smartphone-mockup").scrollIntoView({ 
-          behavior: "smooth", 
-          block: "start" 
-        });
+          if (window.innerWidth <= 968) {
+            document.querySelector(".smartphone-mockup").scrollIntoView({ 
+              behavior: "smooth", 
+              block: "start" 
+            });
+          }
+        }, 2000);
+      } catch (error) {
+        console.error("Live AI Generation failed:", error);
+        alert("Live AI Generation failed! (Please check your Gemini API key or internet connection). Falling back to preloaded offline database.");
+        
+        // Graceful Fallback
+        setTimeout(() => {
+          if (activeChapterKey === "custom") {
+            activeChapterKey = "science-10"; // Fallback to science demo if they were custom
+            chapterSelect.value = "science-10";
+            previewContainer.classList.remove("hidden");
+            customTextGroup.classList.add("hidden");
+            updateTextbookPreview();
+          }
+          populateResults();
+          screenProcessing.classList.remove("active");
+          screenResults.classList.add("active");
+          
+          appNavHome.classList.remove("active");
+          appNavScan.classList.add("active");
+
+          if (window.innerWidth <= 968) {
+            document.querySelector(".smartphone-mockup").scrollIntoView({ 
+              behavior: "smooth", 
+              block: "start" 
+            });
+          }
+        }, 2000);
       }
-    }, 2000);
+    } else {
+      // Use pre-loaded static simulation datasets
+      if (activeChapterKey === "custom") {
+        alert("Custom mode requires a Gemini API Key to function. Please enter a key in the settings panel above, or use preloaded chapters! Falling back to CBSE Science demo...");
+        activeChapterKey = "science-10";
+        chapterSelect.value = "science-10";
+        previewContainer.classList.remove("hidden");
+        customTextGroup.classList.add("hidden");
+        updateTextbookPreview();
+      }
+
+      setTimeout(() => {
+        populateResults();
+        screenProcessing.classList.remove("active");
+        screenResults.classList.add("active");
+        
+        appNavHome.classList.remove("active");
+        appNavScan.classList.add("active");
+
+        if (window.innerWidth <= 968) {
+          document.querySelector(".smartphone-mockup").scrollIntoView({ 
+            behavior: "smooth", 
+            block: "start" 
+          });
+        }
+      }, 2000);
+    }
   });
 
+  // ----------------------------------------
+  // LIVE GEMINI API CLIENT INTEGRATION
+  // ----------------------------------------
+  let activeDataObj = null;
+
+  async function callGeminiAPI(key, text) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+    const prompt = `You are a professional CBSE Board Exam Tutor. Analyze the following textbook text and generate a structured JSON object containing a cheat-sheet summary and a school board exam quiz.
+    Your response must be STRICTLY raw JSON. Do NOT wrap it in \`\`\`json markdown blocks, do not prefix with anything, just output raw JSON text.
+    Format must be exactly this JSON schema:
+    {
+      "summary": [
+        "<strong>Key Highlight:</strong> Rich bullet point explaining a core term or concept from the text...",
+        "<strong>Key Highlight:</strong> Another bullet point...",
+        "<strong>Key Highlight:</strong> Another bullet point...",
+        "<strong>Key Highlight:</strong> Another bullet point...",
+        "<strong>Key Highlight:</strong> Another bullet point..."
+      ],
+      "quiz": [
+        {
+          "q": "CBSE Class 10 style multiple choice question matching this text?",
+          "options": ["Choice A", "Choice B", "Choice C", "Choice D"],
+          "correct": 0
+        },
+        {
+          "q": "Another CBSE Class 10 multiple choice question matching this text?",
+          "options": ["Choice A", "Choice B", "Choice C", "Choice D"],
+          "correct": 1
+        },
+        {
+          "q": "Another CBSE Class 10 multiple choice question matching this text?",
+          "options": ["Choice A", "Choice B", "Choice C", "Choice D"],
+          "correct": 2
+        },
+        {
+          "q": "Another CBSE Class 10 multiple choice question matching this text?",
+          "options": ["Choice A", "Choice B", "Choice C", "Choice D"],
+          "correct": 3
+        },
+        {
+          "q": "Another CBSE Class 10 multiple choice question matching this text?",
+          "options": ["Choice A", "Choice B", "Choice C", "Choice D"],
+          "correct": 0
+        }
+      ]
+    }
+    Textbook Text to analyze:
+    ${text}`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: prompt }]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Gemini API call failed");
+    }
+
+    const resData = await response.json();
+    let reply = resData.candidates[0].content.parts[0].text.trim();
+    
+    // Clean up any markdown code block wrapping (e.g. ```json ... ```)
+    if (reply.startsWith("```")) {
+      reply = reply.replace(/^```(json)?/, "").replace(/```$/, "").trim();
+    }
+
+    return JSON.parse(reply);
+  }
+
   // Populate dynamic summary & quiz data
-  function populateResults() {
-    const data = chapterData[activeChapterKey];
+  function populateResults(customData = null) {
+    const data = customData ? customData : chapterData[activeChapterKey];
+    activeDataObj = data;
     
     // 1. Summaries
-    sumSubject.innerText = `${data.subject} - ${activeBoard} SPECIFIC`;
-    sumTitle.innerText = data.title;
+    sumSubject.innerText = customData ? "DYN-AI REALTIME" : `${data.subject} - CBSE SPECIFIC`;
+    sumTitle.innerText = customData ? "Real Live AI Analysis" : data.title;
     
     sumPointsList.innerHTML = "";
     data.summary.forEach(point => {
@@ -396,7 +569,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Quiz Mechanisms
   function loadQuizQuestion() {
-    const data = chapterData[activeChapterKey];
+    const data = activeDataObj ? activeDataObj : chapterData[activeChapterKey];
     const quiz = data.quiz;
     const idx = quizState.currentQuestionIndex;
 
@@ -454,7 +627,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Next Question Button Callback
   quizNextBtn.addEventListener("click", () => {
-    const data = chapterData[activeChapterKey];
+    const data = activeDataObj ? activeDataObj : chapterData[activeChapterKey];
     quizState.currentQuestionIndex++;
 
     if (quizState.currentQuestionIndex < data.quiz.length) {
@@ -465,7 +638,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function showQuizResults() {
-    const data = chapterData[activeChapterKey];
+    const data = activeDataObj ? activeDataObj : chapterData[activeChapterKey];
     
     quizProgressFill.style.width = "100%";
     quizQuestionText.style.display = "none";
