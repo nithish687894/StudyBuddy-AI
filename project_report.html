@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StudyBuddy AI — Class 10 AI Project Report</title>
+  <style>
+    /* Print-optimized stylesheet */
+    @page {
+      size: A4;
+      margin: 20mm;
+    }
+    
+    body {
+      color: #1e293b;
+      background-color: #ffffff;
+      font-family: 'Georgia', serif;
+      font-size: 11pt;
+      line-height: 1.6;
+    }
+    
+    /* Headings */
+    h1, h2, h3, h4 {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      font-weight: bold;
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+      page-break-after: avoid;
+    }
+    
+    h1 {
+      font-size: 24pt;
+      text-align: center;
+      margin-bottom: 0.2em;
+      color: #0284c7;
+    }
+    
+    h2 {
+      font-size: 16pt;
+      border-bottom: 1.5pt solid #e2e8f0;
+      padding-bottom: 0.3em;
+      color: #0f172a;
+    }
+    
+    h3 {
+      font-size: 12pt;
+      color: #334155;
+    }
+    
+    /* Cover Page Specifics */
+    .cover-page {
+      page-break-after: always;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      min-height: 240mm;
+      text-align: center;
+      padding-top: 20mm;
+    }
+    
+    .cover-subtitle {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 14pt;
+      color: #64748b;
+      margin-top: 0.5em;
+      margin-bottom: 2em;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
+    .cover-title {
+      font-size: 32pt;
+      color: #0284c7;
+      margin-bottom: 0.1em;
+    }
+    
+    .cover-tagline {
+      font-size: 14pt;
+      font-style: italic;
+      color: #475569;
+      margin-bottom: 3em;
+    }
+    
+    .cover-logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 3em;
+      border-radius: 50%;
+    }
+    
+    .cover-meta {
+      margin-top: auto;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 10.5pt;
+      color: #475569;
+      line-height: 1.8;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 1.5em;
+      width: 80%;
+    }
+    
+    /* Page break utility */
+    .page-break {
+      page-break-after: always;
+    }
+    
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5em 0;
+      font-size: 10pt;
+    }
+    
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f1f5f9;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-weight: bold;
+      color: #1e293b;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    
+    /* Alert / Callout Boxes */
+    .alert {
+      background-color: #f0f9ff;
+      border-left: 4px solid #0284c7;
+      padding: 12px 16px;
+      margin: 1.5em 0;
+      border-radius: 4px;
+      font-size: 10.5pt;
+    }
+    
+    .alert-title {
+      font-weight: bold;
+      color: #0369a1;
+      margin-bottom: 4px;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    
+    /* Lists */
+    ul, ol {
+      margin-top: 0.5em;
+      margin-bottom: 1em;
+      padding-left: 20px;
+    }
+    
+    li {
+      margin-bottom: 0.5em;
+    }
+    
+    /* Images */
+    .image-container {
+      text-align: center;
+      margin: 2em 0;
+      page-break-inside: avoid;
+    }
+    
+    .image-container img {
+      max-width: 80%;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+    }
+    
+    .image-caption {
+      font-size: 9pt;
+      color: #64748b;
+      margin-top: 0.5em;
+      font-style: italic;
+    }
+    
+    /* TOC styling */
+    .toc-list {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .toc-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.6em;
+      border-bottom: 1px dotted #cbd5e1;
+    }
+    
+    .toc-name {
+      background-color: #ffffff;
+      padding-right: 5px;
+    }
+    
+    .toc-page {
+      background-color: #ffffff;
+      padding-left: 5px;
+      font-weight: bold;
+    }
+    
+    /* Mermaid diagram representation in print */
+    .diagram-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background-color: #f8fafc;
+      padding: 15px;
+      font-family: monospace;
+      font-size: 9pt;
+      margin: 1.5em 0;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. COVER PAGE -->
+  <div class="cover-page">
+    <img src="assets/logo.png" alt="StudyBuddy AI Logo" class="cover-logo">
+    <h1 class="cover-title">STUDYBUDDY AI</h1>
+    <div class="cover-subtitle">MINI STARTUP PLAN</div>
+    <div class="cover-tagline">"Scan Your Textbook. Master Your Exam."</div>
+    
+    <div style="margin-top: 2em; max-width: 500px; line-height: 1.5; color: #475569;">
+      An Artificial Intelligence-driven study platform enabling high-retention self-learning through dynamic syllabus extraction and targeted mock evaluations.
+    </div>
+
+    <div class="cover-meta">
+      <strong>Subject:</strong> Artificial Intelligence (Subject Code 417)<br>
+      <strong>Level:</strong> Class 10 Internal Assessment (Entrepreneurial Skills)<br>
+      <strong>Academic Session:</strong> 2026-2027<br>
+      <strong>Board:</strong> CBSE Curriculum Standard (NCERT Syllabus)
+    </div>
+  </div>
+
+  <!-- 2. TABLE OF CONTENTS -->
+  <div class="page-break">
+    <h2>📋 TABLE OF CONTENTS</h2>
+    <ul class="toc-list" style="margin-top: 2em;">
+      <li class="toc-item"><span class="toc-name">1. Executive Summary</span><span class="toc-page">Page 3</span></li>
+      <li class="toc-item"><span class="toc-name">2. Problem Scoping & 4Ws Canvas</span><span class="toc-page">Page 3</span></li>
+      <li class="toc-item"><span class="toc-name">3. The Proposed Solution (Business Idea)</span><span class="toc-page">Page 4</span></li>
+      <li class="toc-item"><span class="toc-name">4. Market Analysis & Competitive Edge</span><span class="toc-page">Page 5</span></li>
+      <li class="toc-item"><span class="toc-name">5. Target Audience & User Personas</span><span class="toc-page">Page 5</span></li>
+      <li class="toc-item"><span class="toc-name">6. Financial & Operational Budget (INR ₹)</span><span class="toc-page">Page 6</span></li>
+      <li class="toc-item"><span class="toc-name">7. Technical Framework & AI pipeline</span><span class="toc-page">Page 7</span></li>
+      <li class="toc-item"><span class="toc-name">8. Ethical Safety & Privacy Policies</span><span class="toc-page">Page 7</span></li>
+      <li class="toc-item"><span class="toc-name">9. Strategic Roadmap & Conclusion</span><span class="toc-page">Page 8</span></li>
+    </ul>
+    
+    <div class="image-container" style="margin-top: 3em;">
+      <img src="assets/poster.png" alt="StudyBuddy Promotional Poster" style="max-height: 320px; object-fit: contain;">
+      <div class="image-caption">Figure 1.1: Official StudyBuddy AI Launch Advertisement & Campaign Creative</div>
+    </div>
+  </div>
+
+  <!-- 3. EXECUTIVE SUMMARY -->
+  <div>
+    <h2>📝 1. EXECUTIVE SUMMARY</h2>
+    <p>
+      <strong>StudyBuddy AI</strong> is a mobile-first, AI-powered learning application designed to improve how school students in India study independently. The product leverages Optical Character Recognition (OCR) and high-speed Large Language Models (LLMs) to make learning from dense textbooks fast and engaging.
+    </p>
+    <p>
+      By taking a photo of any CBSE NCERT textbook page, students instantly receive:
+    </p>
+    <ul>
+      <li><strong>Structured Bullet summaries</strong> highlighting primary keywords and definitions.</li>
+      <li><strong>A custom-generated 10-question quiz</strong> matching the exact style (MCQs, assertion-reasoning) of their CBSE board exams.</li>
+    </ul>
+    <p>
+      Priced at an affordable <strong>₹99/month</strong>, StudyBuddy AI targets a large gap between complex web-based chatbots and high-cost private coaching, providing middle-class Indian parents with an effective and affordable homework support tool.
+    </p>
+  </div>
+
+  <!-- 4. PROBLEM SCOPING -->
+  <div class="page-break">
+    <h2>🔍 2. PROBLEM SCOPING (THE 4WS CANVAS)</h2>
+    <p>
+      In accordance with the standard <strong>AI Project Cycle</strong>, the problem is scoped across four specific domains:
+    </p>
+    
+    <h3>Who (Who is affected by the problem?)</h3>
+    <p>
+      School students in Classes 9 to 12 who face high academic stress and dense workloads. Secondarily, parents who want to support their child's education but cannot afford expensive private tutors.
+    </p>
+    
+    <h3>What (What is the problem?)</h3>
+    <p>
+      School textbooks are extremely dense. Students struggle to extract key points quickly during revision. Existing revision tools (like search engines or generic chatbots) are either slow, distracting, or do not align with the specific CBSE board syllabus.
+    </p>
+    
+    <h3>Where (Context/Setting?)</h3>
+    <p>
+      This problem is most common during self-study hours at home, late-night exam preparations, or quick review sessions in school buses immediately before a test.
+    </p>
+    
+    <h3>Why (Why solve it?)</h3>
+    <p>
+      Providing students with structured revision aids and active practice quizzes reduces exam anxiety, improves retention of information, and saves parents thousands of rupees on private tutoring.
+    </p>
+
+    <div class="diagram-box">
+[4Ws Problem Scoping Canvas]
+ ├── WHO: Classes 9-12 Students & worried parents
+ ├── WHAT: Overwhelming textbook text, generic search results, expensive tutoring
+ ├── WHERE: Self-study hours, exam-eve preparation, home learning environments
+ └── WHY: Standardizes exam practice, reduces test anxiety, provides affordable aid
+    </div>
+  </div>
+
+  <!-- 5. SOLUTION & BUSINESS IDEA -->
+  <div class="page-break">
+    <h2>🚀 3. THE PROPOSED SOLUTION (BUSINESS IDEA)</h2>
+    <p>
+      StudyBuddy AI provides a seamless study flow that translates physical text into structured study notes in less than 5 seconds.
+    </p>
+    
+    <div class="diagram-box">
+[📷 Capture page photo] ──► [🔍 Extract text via OCR] ──► [🧠 Run LLM prompt engine]
+                                                                  │
+      ┌───────────────────────────────────────────────────────────┴──────────────────────────────────────────┐
+      ▼                                                                                                      ▼
+[📝 Summaries & Bullet Guides]                                                                 [✍️ Interactive Board Exam Quiz]
+- Key Term definitions                                                                         - 5 Board-aligned MCQs
+- Core concept explanations                                                                    - 3 Fill-in-the-blanks
+- Highlighted board keywords                                                                   - 2 Assertion-reasoning items
+    </div>
+
+    <h3>Core Application Features:</h3>
+    <ul>
+      <li><strong>Intelligent OCR Engine:</strong> High-precision text capture that extracts readable content even from low-light photos or curved book pages.</li>
+      <li><strong>Curriculum-Aware Summaries:</strong> The system automatically aligns the explanation layout strictly with CBSE NCERT learning outcomes.</li>
+      <li><strong>10-Question Syllabus Quizzes:</strong> Instant mock quizzes featuring Multiple Choice Questions (MCQs), fill-in-the-blanks, and assertion-reasoning questions.</li>
+      <li><strong>Progress Metrics Dashboard:</strong> Interactive streaks, XP tracking, and difficulty metrics to keep students motivated.</li>
+    </ul>
+  </div>
+
+  <!-- 6. MARKET ANALYSIS -->
+  <div class="page-break">
+    <h2>📊 4. MARKET ANALYSIS & COMPETITIVE EDGE</h2>
+    <p>
+      While standard chatbots like ChatGPT and Google Gemini are highly advanced, they are not optimized for K-12 school students.
+    </p>
+    
+    <h3>Why General Chatbots Fail Younger Students:</h3>
+    <ol>
+      <li><strong>Complex Prompting Required:</strong> Students must write detailed prompts to receive age-appropriate responses, which is slow and frustrating.</li>
+      <li><strong>Syllabus Mismatch:</strong> General LLMs draw from global databases and often include deleted topics or materials outside the specific national boards.</li>
+      <li><strong>Distraction Risks:</strong> Open chat systems do not contain children-safe educational filters, raising parental concerns.</li>
+    </ol>
+
+    <h3>Competitive Comparison Matrix</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>General AI Chatbots</th>
+          <th>Traditional EdTech Packs</th>
+          <th>StudyBuddy AI</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Usage Speed</strong></td>
+          <td>Slow (Requires text prompts)</td>
+          <td>Slow (Hours of video lectures)</td>
+          <td><strong>Instant (1-click photo scan)</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Syllabus Focus</strong></td>
+          <td>Generic / General Knowledge</td>
+          <td>Static/Pre-recorded courses</td>
+          <td><strong>Dynamic & CBSE-Tailored</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Safety Focus</strong></td>
+          <td>None (Unrestricted web access)</td>
+          <td>High (Closed app)</td>
+          <td><strong>High (Educational filters only)</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Affordability</strong></td>
+          <td>Free or ₹1,999/month</td>
+          <td>₹2,000 - ₹5,000/month</td>
+          <td><strong>₹99/month (Premium)</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 7. TARGET AUDIENCE & PERSONAS -->
+  <div>
+    <h2>👥 5. TARGET AUDIENCE & USER PERSONAS</h2>
+    <p>
+      Our audience profile consists of two distinct segments:
+    </p>
+    
+    <div class="alert">
+      <div class="alert-title">User Profile A: Priya Sharma (Class 10 Student)</div>
+      Priya is studying for her CBSE science boards. She is overwhelmed by the length of the chemistry chapters and wants to quickly check her knowledge before a school test without scrolling through hours of YouTube videos. StudyBuddy AI provides her with instant summaries and quick practice questions.
+    </div>
+
+    <div class="alert" style="background-color: #fdfbf7; border-left-color: #ca8a04;">
+      <div class="alert-title" style="color: #854d0e;">User Profile B: Rajesh Patel (Parent)</div>
+      Rajesh wants his son to perform well in his studies, but local private coaching institutes charge over ₹3,000 per month. He purchases the ₹99/month StudyBuddy Pro plan, which provides an affordable way for his son to practice high-quality educational assessments at home.
+    </div>
+  </div>
+
+  <!-- 8. FINANCIAL MODEL -->
+  <div class="page-break">
+    <h2>💰 6. FINANCIAL & OPERATIONAL BUDGET (INR ₹)</h2>
+    <p>
+      StudyBuddy AI uses a **Freemium Business Model** to balance wide user reach with healthy startup profitability.
+    </p>
+    <ul>
+      <li><strong>Free Plan:</strong> Includes 3 book scans per day, standard summaries, and basic text outputs.</li>
+      <li><strong>Premium Plan (Pro):</strong> Priced at <strong>₹99 per month</strong>, offering unlimited scans, CBSE-specific styling, PDF exports, custom quizzes, and text-to-speech audio.</li>
+    </ul>
+
+    <h3>Estimated Monthly Operational Expenses (Year 1 Budget)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Expense Category</th>
+          <th>Operational Description</th>
+          <th>Cost in INR (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>AI API Tokens</strong></td>
+          <td>Inference fees for LLM queries (Gemini 1.5 Flash API)</td>
+          <td>₹25,000</td>
+        </tr>
+        <tr>
+          <td><strong>Cloud Servers</strong></td>
+          <td>AWS/Google Cloud database hosting & static website files</td>
+          <td>₹12,000</td>
+        </tr>
+        <tr>
+          <td><strong>Marketing Campaign</strong></td>
+          <td>Targeted social media promotions to student communities</td>
+          <td>₹15,000</td>
+        </tr>
+        <tr>
+          <td><strong>Maintenance & Support</strong></td>
+          <td>Customer service, standard app maintenance, and bug fixes</td>
+          <td>₹20,000</td>
+        </tr>
+        <tr>
+          <td><strong>UPI Gateway Fees</strong></td>
+          <td>Payment transaction charges (2%) & buffer costs</td>
+          <td>₹8,000</td>
+        </tr>
+        <tr>
+          <td colspan="2"><strong>TOTAL MONTHLY EXPENSES</strong></td>
+          <td><strong>₹80,000</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Profit Projection & Break-Even Analysis</h3>
+    <p>
+      Assuming a target of **10,000 active free users** and a conservative **1,000 paying premium subscribers** (10% conversion) in the first year:
+    </p>
+    <ul>
+      <li><strong>Gross Monthly Revenue:</strong> 1,000 subscribers × ₹99 = <strong>₹99,000</strong></li>
+      <li><strong>Total Monthly Cost:</strong> <strong>₹80,000</strong></li>
+      <li><strong>Net Monthly Profit:</strong> ₹99,000 - ₹80,000 = <strong>₹19,000</strong></li>
+    </ul>
+    
+    <p>
+      The break-even point represents the number of premium subscribers required to cover all operating costs:
+    </p>
+    <p style="text-align: center; font-size: 13pt; font-weight: bold; margin: 1em 0;">
+      Break-Even Point = ₹80,000 / ₹99 ≈ 809 Premium Subscribers
+    </p>
+  </div>
+
+  <!-- 9. TECHNICAL FRAMEWORK -->
+  <div class="page-break">
+    <h2>🛠️ 7. TECHNICAL FRAMEWORK & AI PIPELINE</h2>
+    <p>
+      StudyBuddy AI uses a modern, lightweight tech stack to ensure fast responses and low costs:
+    </p>
+    <ol>
+      <li><strong>Frontend Interface:</strong> Built with **Flutter** (for cross-platform iOS & Android mobile performance) and HTML5/CSS3 for web views.</li>
+      <li><strong>Text Extraction (Data Acquisition):</strong> **Google Cloud Vision OCR API** for converting textbook images into readable text.</li>
+      <li><strong>AI Logic & Summaries (Modelling):</strong> **Google Gemini 1.5 Flash API**. This model is selected for its high speed (responses under 2 seconds) and low token costs, making our ₹99/month price point highly sustainable.</li>
+      <li><strong>Formatting Layer:</strong> Predefined prompt templates format the output into structured JSON, ensuring consistent layouts for study materials.</li>
+    </ol>
+  </div>
+
+  <!-- 10. ETHICS -->
+  <div>
+    <h2>⚖️ 8. ETHICAL SAFETY & PRIVACY POLICIES</h2>
+    <p>
+      An outstanding school project report must address safety and ethical considerations:
+    </p>
+    <ul>
+      <li><strong>Data Privacy (DPDP Act & COPPA compliance):</strong> StudyBuddy AI does not collect or sell personal student data. Uploaded textbook photos are processed in memory and deleted from servers immediately after text extraction.</li>
+      <li><strong>Homework Integrity:</strong> To prevent cheating on assignments, the app implements a "Homework Mode" policy. During standard school hours (8:00 AM to 2:00 PM), the app provides conceptual hints rather than direct answers for complex math and science homework.</li>
+      <li><strong>Accuracy & Mitigating Hallucinations:</strong> The generative LLMs are restricted strictly to the context of the scanned textbook page, preventing the system from generating incorrect facts or external material.</li>
+    </ul>
+  </div>
+
+  <!-- 11. ROADMAP & CONCLUSION -->
+  <div style="margin-top: 2.5em;">
+    <h2>🏁 9. STRATEGIC ROADMAP & CONCLUSION</h2>
+    <p>
+      StudyBuddy AI demonstrates how artificial intelligence can be used to make quality revision tools affordable and accessible to school students. It transforms self-study from passive reading into active, personalized learning.
+    </p>
+    
+    <h3>Future Development Phases:</h3>
+    <ul>
+      <li><strong>Multilingual Support:</strong> Translating scanned English textbook pages into Hindi, Tamil, Bengali, or Marathi to support CBSE students who prefer learning key terminology in their native mother tongue.</li>
+      <li><strong>Speech-to-Study Voice Assistant:</strong> Allowing visually impaired students to listen to interactive audio summaries and answer study quizzes vocally.</li>
+      <li><strong>Collaborative Class Quizzes:</strong> A safe lobby where friends can challenge each other on quizzes generated directly from their shared school syllabus.</li>
+    </ul>
+  </div>
+
+</body>
+</html>
