@@ -1,6 +1,6 @@
 // ==========================================
-// StudyBuddy AI Dashboard Logic
-// Interactive Simulator & Revenue Calculator
+// StudyBuddy AI Application Engine
+// Physical Mobile OCR Scan & Interactive Simulator
 // ==========================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -208,24 +208,39 @@ document.addEventListener("DOMContentLoaded", () => {
   // 2. DOM ELEMENT SELECTORS
   // ----------------------------------------
   
-  // Simulator Controls
-  const boardSelect = document.getElementById("board-select");
+  // Desktop Sidebar controls
   const chapterSelect = document.getElementById("chapter-select");
   const textbookPageContent = document.getElementById("textbook-page-content");
   const scanBtn = document.getElementById("scan-btn");
-  
-  // Dynamic Real-Time Nodes
   const geminiKeyInput = document.getElementById("gemini-key");
   const customTextGroup = document.getElementById("custom-text-group");
   const customTextInput = document.getElementById("custom-text-input");
   const previewContainer = document.getElementById("preview-container");
+  const qrCodeImg = document.getElementById("qr-code-img");
+  
+  // Collapsible panel elements
+  const financialsToggleBtn = document.getElementById("financials-toggle-btn");
+  const financialsContentPanel = document.getElementById("financials-content-panel");
+  const collapsibleCard = document.querySelector(".collapsible-card");
 
   // Phone Mockup Screens
   const screenCamera = document.getElementById("screen-camera");
   const screenProcessing = document.getElementById("screen-processing");
   const screenResults = document.getElementById("screen-results");
+  const screenProgressProfile = document.getElementById("screen-progress-profile");
   const processingStep = document.getElementById("processing-step");
+  const processingMainStatus = document.getElementById("processing-main-status");
   const appCurrentBoard = document.getElementById("app-current-board");
+
+  // Camera Snapshot OCR Nodes
+  const appCameraTrigger = document.getElementById("app-camera-trigger");
+  const mobileCameraInput = document.getElementById("mobile-camera-input");
+  const cameraPhotoPreview = document.getElementById("camera-photo-preview");
+  const capturedImg = document.getElementById("captured-img");
+  const confirmScanBtn = document.getElementById("confirm-scan-btn");
+  const cancelScanBtn = document.getElementById("cancel-scan-btn");
+  const scanningThumbnailContainer = document.getElementById("scanning-thumbnail-container");
+  const scanningThumbnail = document.getElementById("scanning-thumbnail");
 
   // Result Tabs
   const tabBtns = document.querySelectorAll(".tab-btn");
@@ -248,34 +263,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const quizRatingMsg = document.getElementById("quiz-rating-msg");
   const quizRestartBtn = document.getElementById("quiz-restart-btn");
 
-  // Calculator Sliders & Output Displays
+  // Sliders: Desktop Sidebar
   const inputMau = document.getElementById("input-mau");
   const inputConversion = document.getElementById("input-conversion");
   const inputPrice = document.getElementById("input-price");
-  
   const valMau = document.getElementById("val-mau");
   const valConversion = document.getElementById("val-conversion");
   const valPrice = document.getElementById("val-price");
-
-  const snipPremiumUsers = document.getElementById("snip-premium-users");
-  const snipBreakeven = document.getElementById("snip-breakeven");
-
   const dispRevenue = document.getElementById("disp-revenue");
   const dispCost = document.getElementById("disp-cost");
   const dispProfit = document.getElementById("disp-profit");
 
-  // Operating Costs Breakdown Nodes
-  const costApi = document.getElementById("cost-api");
-  const costHosting = document.getElementById("cost-hosting");
-  const costMarketing = document.getElementById("cost-marketing");
-  const costSupport = document.getElementById("cost-support");
-  const costMisc = document.getElementById("cost-misc");
-
-  const barApi = document.getElementById("bar-api");
-  const barHosting = document.getElementById("bar-hosting");
-  const barMarketing = document.getElementById("bar-marketing");
-  const barSupport = document.getElementById("bar-support");
-  const barMisc = document.getElementById("bar-misc");
+  // Sliders: Mobile App (Internal Screen)
+  const appInputMau = document.getElementById("app-input-mau");
+  const appInputConversion = document.getElementById("app-input-conversion");
+  const appInputPrice = document.getElementById("app-input-price");
+  const appValMau = document.getElementById("app-val-mau");
+  const appValConversion = document.getElementById("app-val-conversion");
+  const appValPrice = document.getElementById("app-val-price");
+  const appDispRevenue = document.getElementById("app-disp-revenue");
+  const appDispCost = document.getElementById("app-disp-cost");
+  const appDispProfit = document.getElementById("app-disp-profit");
 
   // Phone Mockup Navigation
   const appNavHome = document.getElementById("app-nav-home");
@@ -287,7 +295,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // ----------------------------------------
   
   let activeChapterKey = "science-10";
-  let activeBoard = "CBSE";
+  let activeDataObj = null;
+  let ocrImageFile = null;
   
   let quizState = {
     currentQuestionIndex: 0,
@@ -301,7 +310,6 @@ document.addEventListener("DOMContentLoaded", () => {
     geminiKeyInput.value = localStorage.getItem("gemini_api_key");
   }
 
-  // Save Gemini Key when typing
   geminiKeyInput.addEventListener("input", (e) => {
     localStorage.setItem("gemini_api_key", e.target.value.trim());
   });
@@ -309,14 +317,149 @@ document.addEventListener("DOMContentLoaded", () => {
   // Set initial textbook text
   updateTextbookPreview();
   // Set initial financials
-  calculateFinancials();
+  calculateFinancials(true); // Sync from desktop values to mobile on load
+
+  // Load dynamic QR Code based on local server network IP or current address!
+  if (qrCodeImg) {
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(config => {
+        const mobileURL = `http://${config.localIp}:${config.port}`;
+        qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(mobileURL)}`;
+        const urlText = document.querySelector(".qr-url-text");
+        if (urlText) {
+          urlText.innerText = `Connect phone to Wi-Fi, scan QR!`;
+        }
+      })
+      .catch(() => {
+        // Fallback for file:// direct viewing
+        const currentURL = window.location.href;
+        qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentURL)}`;
+        const urlText = document.querySelector(".qr-url-text");
+        if (urlText) {
+          urlText.innerText = `Connect phone to Wi-Fi, scan QR!`;
+        }
+      });
+  }
 
   // ----------------------------------------
-  // 4. SIMULATOR LOGIC
+  // 4. DESKTOP SIDEBAR COLLAPSE TOGGLE
   // ----------------------------------------
+  if (financialsToggleBtn) {
+    financialsToggleBtn.addEventListener("click", () => {
+      const isOpen = collapsibleCard.classList.contains("open");
+      if (isOpen) {
+        collapsibleCard.classList.remove("open");
+        financialsContentPanel.classList.add("hidden");
+      } else {
+        collapsibleCard.classList.add("open");
+        financialsContentPanel.classList.remove("hidden");
+      }
+    });
+  }
 
-  // Update textbook snapshot when select inputs change
-  // Board standard is locked to CBSE internally
+  // ----------------------------------------
+  // 5. DOUBLE CALCULATOR SYNCHRONIZER
+  // ----------------------------------------
+  
+  // Desktop sidebar event listeners
+  inputMau.addEventListener("input", (e) => {
+    valMau.innerText = Number(e.target.value).toLocaleString('en-IN');
+    appInputMau.value = e.target.value;
+    appValMau.innerText = Number(e.target.value).toLocaleString('en-IN');
+    calculateFinancials();
+  });
+
+  inputConversion.addEventListener("input", (e) => {
+    valConversion.innerText = `${e.target.value}%`;
+    appInputConversion.value = e.target.value;
+    appValConversion.innerText = `${e.target.value}%`;
+    calculateFinancials();
+  });
+
+  inputPrice.addEventListener("input", (e) => {
+    valPrice.innerText = `₹${e.target.value}`;
+    appInputPrice.value = e.target.value;
+    appValPrice.innerText = `₹${e.target.value}`;
+    calculateFinancials();
+  });
+
+  // Mobile App Estimator event listeners
+  appInputMau.addEventListener("input", (e) => {
+    appValMau.innerText = Number(e.target.value).toLocaleString('en-IN');
+    inputMau.value = e.target.value;
+    valMau.innerText = Number(e.target.value).toLocaleString('en-IN');
+    calculateFinancials();
+  });
+
+  appInputConversion.addEventListener("input", (e) => {
+    appValConversion.innerText = `${e.target.value}%`;
+    inputConversion.value = e.target.value;
+    valConversion.innerText = `${e.target.value}%`;
+    calculateFinancials();
+  });
+
+  appInputPrice.addEventListener("input", (e) => {
+    appValPrice.innerText = `₹${e.target.value}`;
+    inputPrice.value = e.target.value;
+    valPrice.innerText = `₹${e.target.value}`;
+    calculateFinancials();
+  });
+
+  function calculateFinancials() {
+    const mau = parseInt(inputMau.value);
+    const conversion = parseFloat(inputConversion.value) / 100;
+    const price = parseInt(inputPrice.value);
+
+    // Algebra Model Formula
+    const premiumUsers = Math.round(mau * conversion);
+    const freeUsers = mau - premiumUsers;
+    
+    // Gross revenue
+    const grossRevenue = premiumUsers * price;
+    
+    // Server costs calculations
+    const apiCost = Math.round((freeUsers * 6 * 0.10) + (premiumUsers * 60 * 0.10));
+    const hostingCost = Math.round(6000 + (mau * 0.40));
+    const marketingCost = Math.round(10000 + (mau * 0.20));
+    const supportCost = Math.round(15000 + (premiumUsers * 2.0));
+    const gatewayFees = Math.round(grossRevenue * 0.02);
+    const miscCost = Math.round(4000 + gatewayFees);
+    
+    const totalCost = apiCost + hostingCost + marketingCost + supportCost + miscCost;
+    const netProfit = grossRevenue - totalCost;
+
+    // Formatting outputs in standard Indian Rupees (₹)
+    const formattedRevenue = `₹${grossRevenue.toLocaleString('en-IN')}`;
+    const formattedCost = `₹${totalCost.toLocaleString('en-IN')}`;
+    const formattedProfit = `₹${netProfit.toLocaleString('en-IN')}`;
+
+    // Update Desktop Labels
+    dispRevenue.innerText = formattedRevenue;
+    dispCost.innerText = formattedCost;
+    dispProfit.innerText = formattedProfit;
+
+    if (netProfit < 0) {
+      dispProfit.className = "text-red font-bold";
+    } else {
+      dispProfit.className = "text-green font-bold";
+    }
+
+    // Update Mobile App Labels
+    appDispRevenue.innerText = formattedRevenue;
+    appDispCost.innerText = formattedCost;
+    appDispProfit.innerText = formattedProfit;
+
+    if (netProfit < 0) {
+      appDispProfit.className = "text-red";
+    } else {
+      appDispProfit.className = "text-green";
+    }
+  }
+
+  // ----------------------------------------
+  // 6. SIMULATOR LOGIC
+  // ----------------------------------------
 
   chapterSelect.addEventListener("change", (e) => {
     activeChapterKey = e.target.value;
@@ -333,8 +476,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateTextbookPreview() {
     const data = chapterData[activeChapterKey];
     textbookPageContent.innerHTML = `<em>"${data.pageText}"</em>`;
-    
-    // Reset simulated mobile screen to camera tab if active results
     resetAppScreen();
   }
 
@@ -342,6 +483,15 @@ document.addEventListener("DOMContentLoaded", () => {
     screenCamera.classList.add("active");
     screenProcessing.classList.remove("active");
     screenResults.classList.remove("active");
+    screenProgressProfile.classList.remove("active");
+
+    appNavHome.classList.add("active");
+    appNavProfile.classList.remove("active");
+
+    // Close preview overlays if open
+    cameraPhotoPreview.classList.add("hidden");
+    capturedImg.src = "";
+    ocrImageFile = null;
     
     // Reset tabs
     switchTab("tab-summary");
@@ -353,9 +503,9 @@ document.addEventListener("DOMContentLoaded", () => {
     quizState.completed = false;
   }
 
-  // Scan & Summarize Simulation Trigger
-  scanBtn.addEventListener("click", async () => {
-    // Determine active text input
+  // Scan Button Trigger (Desktop Controls)
+  scanBtn.addEventListener("click", () => {
+    // Determine active input mode
     let textToAnalyze = "";
     if (activeChapterKey === "custom") {
       textToAnalyze = customTextInput.value.trim();
@@ -367,36 +517,35 @@ document.addEventListener("DOMContentLoaded", () => {
       textToAnalyze = chapterData[activeChapterKey].pageText;
     }
 
-    // OPTIONAL: Paste your free Gemini API Key here to make the website work with real AI 
-    // automatically for everyone (including your teacher!) without entering a key in the panel.
-    const DEFAULT_API_KEY = ""; 
-    
-    const apiKey = geminiKeyInput.value.trim() || DEFAULT_API_KEY;
-    const useLiveAI = apiKey.length > 0;
+    triggerMockScanAnimation(textToAnalyze);
+  });
 
-    // 1. Trigger camera flash shutter animation
-    const shutter = document.getElementById("camera-shutter");
-    if (shutter) {
-      shutter.style.opacity = "1";
-      setTimeout(() => {
-        shutter.style.opacity = "0";
-      }, 150);
-    }
+  // Mock scan animation logic
+  function triggerMockScanAnimation(text) {
+    triggerCameraShutterFlash();
 
-    // 2. Move to Processing Screen
+    // Reset views
     screenCamera.classList.remove("active");
     screenResults.classList.remove("active");
+    screenProgressProfile.classList.remove("active");
     screenProcessing.classList.add("active");
     
+    appNavHome.classList.remove("active");
+    appNavProfile.classList.remove("active");
+    
     appCurrentBoard.innerText = `CBSE Student Portal`;
+    processingMainStatus.innerText = "Analyzing Textbook Page...";
+    scanningThumbnailContainer.classList.add("hidden");
 
-    // 2. Perform step-by-step loading effects
+    const apiKey = geminiKeyInput.value.trim();
+    const useLiveAI = apiKey.length > 0;
+
     const steps = [
-      { text: "Capturing page with High-Res OCR...", time: 0 },
-      { text: "Extracting textbook paragraphs...", time: 400 },
-      { text: useLiveAI ? "Establishing secure Google Cloud connection..." : "Structuring prompts for CBSE Syllabus...", time: 800 },
-      { text: useLiveAI ? "Generating Dynamic CBSE Summary via Gemini..." : "Engaging Gemini AI Large Language Model...", time: 1200 },
-      { text: useLiveAI ? "Constructing Live Board-Aligned MCQ Quiz..." : "Formatting revision guides & quizzes...", time: 1600 }
+      { text: "Reading textbook page with high-res scanner...", time: 0 },
+      { text: "OCR extracting structural text...", time: 400 },
+      { text: useLiveAI ? "Establishing connection to Google Gemini..." : "Matching extracted text to CBSE standards...", time: 800 },
+      { text: useLiveAI ? "Generating board cheat sheet summaries..." : "Formatting dynamic MCQs & answers...", time: 1200 },
+      { text: useLiveAI ? "Constructing customized practice exams..." : "Structuring dashboard panels...", time: 1600 }
     ];
 
     steps.forEach(step => {
@@ -405,82 +554,173 @@ document.addEventListener("DOMContentLoaded", () => {
       }, step.time);
     });
 
-    if (useLiveAI) {
-      try {
-        // Call actual live Gemini API
-        const generatedData = await callGeminiAPI(apiKey, textToAnalyze);
-        
-        // Populate dynamically
-        setTimeout(() => {
+    setTimeout(async () => {
+      if (useLiveAI) {
+        try {
+          const generatedData = await callGeminiAPI(apiKey, text);
           populateResults(generatedData);
-          screenProcessing.classList.remove("active");
-          screenResults.classList.add("active");
-          
-          appNavHome.classList.remove("active");
-          appNavScan.classList.add("active");
-
-          if (window.innerWidth <= 968) {
-            document.querySelector(".smartphone-mockup").scrollIntoView({ 
-              behavior: "smooth", 
-              block: "start" 
-            });
-          }
-        }, 2000);
-      } catch (error) {
-        console.error("Live AI Generation failed:", error);
-        
-        // Graceful Fallback using Local client-side NLP Parser so it still works!
-        setTimeout(() => {
-          const localData = generateLocalNLPData(textToAnalyze);
-          populateResults(localData);
-          screenProcessing.classList.remove("active");
-          screenResults.classList.add("active");
-          
-          appNavHome.classList.remove("active");
-          appNavScan.classList.add("active");
-
-          if (window.innerWidth <= 968) {
-            document.querySelector(".smartphone-mockup").scrollIntoView({ 
-              behavior: "smooth", 
-              block: "start" 
-            });
-          }
-        }, 2000);
+          showResultsScreen();
+        } catch (error) {
+          console.error("Live AI Generation failed, falling back:", error);
+          loadFallbackData(text);
+        }
+      } else {
+        loadFallbackData(text);
       }
+    }, 2000);
+  }
+
+  function loadFallbackData(text) {
+    if (activeChapterKey === "custom" || ocrImageFile) {
+      const localData = generateLocalNLPData(text);
+      populateResults(localData);
     } else {
-      // Use pre-loaded static datasets OR dynamic client-side local NLP parser
-      setTimeout(() => {
-        if (activeChapterKey === "custom") {
-          const localData = generateLocalNLPData(textToAnalyze);
-          populateResults(localData);
-        } else {
-          populateResults();
-        }
-        
-        screenProcessing.classList.remove("active");
-        screenResults.classList.add("active");
-        
-        appNavHome.classList.remove("active");
-        appNavScan.classList.add("active");
-
-        if (window.innerWidth <= 968) {
-          document.querySelector(".smartphone-mockup").scrollIntoView({ 
-            behavior: "smooth", 
-            block: "start" 
-          });
-        }
-      }, 2000);
+      populateResults();
     }
-  });
+    showResultsScreen();
+  }
+
+  function showResultsScreen() {
+    screenProcessing.classList.remove("active");
+    screenResults.classList.add("active");
+    
+    appNavHome.classList.remove("active");
+    appNavScan.classList.remove("active");
+    appNavProfile.classList.remove("active");
+  }
+
+  function triggerCameraShutterFlash() {
+    const shutter = document.getElementById("camera-shutter");
+    if (shutter) {
+      shutter.style.opacity = "1";
+      setTimeout(() => {
+        shutter.style.opacity = "0";
+      }, 150);
+    }
+  }
 
   // ----------------------------------------
-  // LIVE GEMINI API CLIENT INTEGRATION
+  // 7. PHYSICAL MOBILE CAMERA CAPTURE & OCR
   // ----------------------------------------
-  let activeDataObj = null;
+  if (appCameraTrigger && mobileCameraInput) {
+    // When click "Scan Page with Camera" in simulated app, click the hidden input
+    appCameraTrigger.addEventListener("click", () => {
+      mobileCameraInput.click();
+    });
 
+    mobileCameraInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      ocrImageFile = file;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        capturedImg.src = event.target.result;
+        cameraPhotoPreview.classList.remove("hidden");
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (cancelScanBtn) {
+    cancelScanBtn.addEventListener("click", () => {
+      cameraPhotoPreview.classList.add("hidden");
+      capturedImg.src = "";
+      ocrImageFile = null;
+      mobileCameraInput.value = "";
+    });
+  }
+
+  if (confirmScanBtn) {
+    confirmScanBtn.addEventListener("click", () => {
+      if (!ocrImageFile) return;
+
+      // Start actual Tesseract OCR engine!
+      runPhysicalPageOCR(ocrImageFile);
+    });
+  }
+
+  async function runPhysicalPageOCR(file) {
+    triggerCameraShutterFlash();
+
+    // Transition to loading screen
+    cameraPhotoPreview.classList.add("hidden");
+    screenCamera.classList.remove("active");
+    screenProcessing.classList.add("active");
+    appCurrentBoard.innerText = `CBSE Real-Time Scan`;
+
+    // Show scanning image preview
+    processingMainStatus.innerText = "OCR Reading Page...";
+    processingStep.innerText = "Initializing Tesseract Core...";
+    scanningThumbnail.src = capturedImg.src;
+    scanningThumbnailContainer.classList.remove("hidden");
+
+    try {
+      // 1. Initialize Tesseract recognition
+      const result = await Tesseract.recognize(
+        file,
+        'eng',
+        {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              processingStep.innerText = `OCR Reading: ${Math.round(m.progress * 100)}%`;
+            } else {
+              // Convert kebab-case statuses to capitalized readable text
+              const statusLabel = m.status.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+              processingStep.innerText = `${statusLabel}...`;
+            }
+          }
+        }
+      );
+
+      const extractedText = result.data.text.trim();
+      console.log("OCR Scanned Text:", extractedText);
+
+      if (extractedText.length < 20) {
+        throw new Error("No readable textbook paragraph captured (text too short).");
+      }
+
+      // 2. Query LLM or Local NLP with extracted text
+      processingMainStatus.innerText = "AI Structuring CBSE Quiz...";
+      processingStep.innerText = "Building summaries & dynamic board exams...";
+
+      const apiKey = geminiKeyInput.value.trim();
+      if (apiKey.length > 0) {
+        try {
+          const generatedData = await callGeminiAPI(apiKey, extractedText);
+          populateResults(generatedData);
+          showResultsScreen();
+        } catch (error) {
+          console.error("Gemini API error on OCR text, falling back to local NLP:", error);
+          const localData = generateLocalNLPData(extractedText);
+          populateResults(localData);
+          showResultsScreen();
+        }
+      } else {
+        const localData = generateLocalNLPData(extractedText);
+        populateResults(localData);
+        showResultsScreen();
+      }
+
+    } catch (error) {
+      console.error("OCR Scanning failed:", error);
+      alert(`OCR Scan Notification:\n${error.message || "Unable to read textbook text from image. Make sure the page is flat and clear."}\n\nFalling back to CBSE pre-loaded Chapters.`);
+      
+      // Fallback
+      ocrImageFile = null;
+      activeChapterKey = "science-10";
+      const data = chapterData[activeChapterKey];
+      populateResults();
+      showResultsScreen();
+    }
+  }
+
+  // ----------------------------------------
+  // 8. LIVE GEMINI API BRIDGING
+  // ----------------------------------------
   async function callGeminiAPI(key, text) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
-    const prompt = `You are a professional CBSE Board Exam Tutor. Analyze the following textbook text and generate a structured JSON object containing a cheat-sheet summary and a school board exam quiz.
+    const prompt = `You are a professional CBSE Class 10 Board Exam Tutor. Analyze the following textbook text and generate a structured JSON object containing a cheat-sheet summary and a school board exam quiz.
     Your response must be STRICTLY raw JSON. Do NOT wrap it in \`\`\`json markdown blocks, do not prefix with anything, just output raw JSON text.
     Format must be exactly this JSON schema:
     {
@@ -541,7 +781,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const resData = await response.json();
     let reply = resData.candidates[0].content.parts[0].text.trim();
     
-    // Clean up any markdown code block wrapping (e.g. ```json ... ```)
     if (reply.startsWith("```")) {
       reply = reply.replace(/^```(json)?/, "").replace(/```$/, "").trim();
     }
@@ -567,10 +806,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // 2. Quiz Setup
+    quizState.currentQuestionIndex = 0;
+    quizState.score = 0;
+    quizState.answersSelected = [];
+    quizState.completed = false;
     loadQuizQuestion();
   }
 
-  // Quiz Mechanisms
+  // Quiz Engine Mechanisms
   function loadQuizQuestion() {
     const data = activeDataObj ? activeDataObj : chapterData[activeChapterKey];
     const quiz = data.quiz;
@@ -646,8 +889,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const colors = ["#38bdf8", "#facc15", "#4ade80", "#f87171", "#a78bfa", "#fb923c"];
     
-    for (let i = 0; i < 45; i++) {
+    for (let i = 0; i < 35; i++) {
       const p = document.createElement("div");
+      p.className = "confetti";
       p.style.position = "absolute";
       p.style.width = `${Math.random() * 8 + 4}px`;
       p.style.height = `${Math.random() * 8 + 4}px`;
@@ -659,14 +903,14 @@ document.addEventListener("DOMContentLoaded", () => {
       p.style.zIndex = "10";
       p.style.pointerEvents = "none";
       
-      const duration = Math.random() * 2 + 1.5;
+      const duration = Math.random() * 2 + 1.2;
       const horizontalOffset = (Math.random() - 0.5) * 80;
       
       p.style.transition = `all ${duration}s cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
       resultsContainer.appendChild(p);
       
       setTimeout(() => {
-        p.style.transform = `translate(${horizontalOffset}px, 500px) rotate(${Math.random() * 360}deg)`;
+        p.style.transform = `translate(${horizontalOffset}px, 480px) rotate(${Math.random() * 360}deg)`;
         p.style.opacity = "0";
       }, 50);
       
@@ -679,7 +923,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function showQuizResults() {
     const data = activeDataObj ? activeDataObj : chapterData[activeChapterKey];
     
-    // Trigger dynamic confetti celebrations
     triggerConfetti();
     
     quizProgressFill.style.width = "100%";
@@ -691,11 +934,11 @@ document.addEventListener("DOMContentLoaded", () => {
     
     let rating = "";
     if (quizState.score === 50) {
-      rating = "🏆 Phenomenal! You got a perfect board score! Keep it up.";
+      rating = "🏆 Phenomenal! Perfect score of 50 XP! You have master level understanding.";
     } else if (quizState.score >= 30) {
-      rating = "🌟 Great study performance! Review the cheat sheet to target missed items.";
+      rating = "🌟 Great performance! You earned solid XP. Review cheat sheet for remaining items.";
     } else {
-      rating = "📚 Good try! Let's read the summaries carefully and practice again.";
+      rating = "📚 Good try! Read the dynamic summary points and practice again.";
     }
     
     quizRatingMsg.innerText = rating;
@@ -708,7 +951,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadQuizQuestion();
   });
 
-  // Tabs Switching logic inside Phone Output Screen
+  // Tabs Switching inside App Screen
   tabBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       const tabId = btn.getAttribute("data-tab");
@@ -734,130 +977,39 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // App Footer buttons simulation resets
-  appNavHome.addEventListener("click", resetAppScreen);
+  // App Footer buttons routing (SPA Controls)
+  appNavHome.addEventListener("click", () => {
+    resetAppScreen();
+  });
+  
   appNavScan.addEventListener("click", () => {
-    if (screenResults.classList.contains("active")) return;
-    scanBtn.click();
+    resetAppScreen();
+    // Simulate mobile camera file trigger directly when clicking scan tab!
+    mobileCameraInput.click();
   });
+  
   appNavProfile.addEventListener("click", () => {
-    alert("StudyBuddy Analytics Dashboard: Priya Sharma has scanned 42 textbook pages, averaging an 84% accuracy score on dynamic mock exams!");
-  });
+    // Switch to internal Progress & financials screen
+    screenCamera.classList.remove("active");
+    screenProcessing.classList.remove("active");
+    screenResults.classList.remove("active");
+    screenProgressProfile.classList.add("active");
 
+    appNavHome.classList.remove("active");
+    appNavProfile.classList.add("active");
+  });
 
   // ----------------------------------------
-  // 5. FINANCIAL CALCULATOR ALGEBRA
-  // ----------------------------------------
-
-  inputMau.addEventListener("input", (e) => {
-    valMau.innerText = Number(e.target.value).toLocaleString('en-IN');
-    calculateFinancials();
-  });
-
-  inputConversion.addEventListener("input", (e) => {
-    valConversion.innerText = `${e.target.value}%`;
-    calculateFinancials();
-  });
-
-  inputPrice.addEventListener("input", (e) => {
-    valPrice.innerText = `₹${e.target.value}`;
-    calculateFinancials();
-  });
-
-  function calculateFinancials() {
-    const mau = parseInt(inputMau.value);
-    const conversion = parseFloat(inputConversion.value) / 100;
-    const price = parseInt(inputPrice.value);
-
-    // Calculate premium volume
-    const premiumUsers = Math.round(mau * conversion);
-    const freeUsers = mau - premiumUsers;
-    snipPremiumUsers.innerText = premiumUsers.toLocaleString('en-IN');
-
-    // 1. Gross Revenue
-    const grossRevenue = premiumUsers * price;
-    dispRevenue.innerText = `₹${grossRevenue.toLocaleString('en-IN')}`;
-
-    // 2. Realistic Dynamic Costs
-    // API Cost: free user avg 6 scans/mo (₹0.10/scan), premium user 60 scans/mo (₹0.10/scan)
-    const apiCost = Math.round((freeUsers * 6 * 0.10) + (premiumUsers * 60 * 0.10));
-    
-    // Hosting Cost: Base ₹6,000 + ₹0.40 per active user (for scaling databases)
-    const hostingCost = Math.round(6000 + (mau * 0.40));
-    
-    // Marketing Cost: Fixed campaign acquisition budget (scales up slightly at higher targets)
-    const marketingCost = Math.round(10000 + (mau * 0.20));
-    
-    // Support & Admin: Fixed dev salary portion + user tickets ratio
-    const supportCost = Math.round(15000 + (premiumUsers * 2.0));
-    
-    // Miscellaneous: UPI Gateway Fees (2% of Revenue) + general buffers
-    const gatewayFees = Math.round(grossRevenue * 0.02);
-    const miscCost = Math.round(4000 + gatewayFees);
-
-    const totalCost = apiCost + hostingCost + marketingCost + supportCost + miscCost;
-    dispCost.innerText = `₹${totalCost.toLocaleString('en-IN')}`;
-
-    // 3. Profit
-    const netProfit = grossRevenue - totalCost;
-    dispProfit.innerText = `₹${netProfit.toLocaleString('en-IN')}`;
-
-    // Style Profit text dynamically (Red if loss, Green if profit) and update SVG Gauge
-    const marginPercent = grossRevenue > 0 ? Math.round((netProfit / grossRevenue) * 100) : 0;
-    const fillGauge = document.getElementById("gauge-fill");
-    const textGauge = document.getElementById("gauge-text");
-
-    if (netProfit < 0) {
-      dispProfit.className = "metric-value text-red";
-      if (fillGauge) {
-        fillGauge.setAttribute("stroke", "var(--color-red)");
-        fillGauge.setAttribute("stroke-dasharray", `${Math.min(Math.abs(marginPercent), 100)}, 100`);
-      }
-      if (textGauge) textGauge.innerText = `${marginPercent}%`;
-    } else {
-      dispProfit.className = "metric-value text-green";
-      if (fillGauge) {
-        fillGauge.setAttribute("stroke", "var(--color-green)");
-        fillGauge.setAttribute("stroke-dasharray", `${Math.min(marginPercent, 100)}, 100`);
-      }
-      if (textGauge) textGauge.innerText = `+${marginPercent}%`;
-    }
-
-    // 4. Break-even Subscribers
-    const breakEvenSubscribers = Math.ceil(totalCost / price);
-    snipBreakeven.innerText = isFinite(breakEvenSubscribers) ? breakEvenSubscribers.toLocaleString('en-IN') : 0;
-
-    // 5. Update Cost breakdown bars
-    costApi.innerText = `₹${apiCost.toLocaleString('en-IN')}`;
-    costHosting.innerText = `₹${hostingCost.toLocaleString('en-IN')}`;
-    costMarketing.innerText = `₹${marketingCost.toLocaleString('en-IN')}`;
-    costSupport.innerText = `₹${supportCost.toLocaleString('en-IN')}`;
-    costMisc.innerText = `₹${miscCost.toLocaleString('en-IN')}`;
-
-    // Scale widths based on maximum of costs
-    const costsArray = [apiCost, hostingCost, marketingCost, supportCost, miscCost];
-    const maxCost = Math.max(...costsArray);
-    
-    barApi.style.width = `${(apiCost / maxCost) * 100}%`;
-    barHosting.style.width = `${(hostingCost / maxCost) * 100}%`;
-    barMarketing.style.width = `${(marketingCost / maxCost) * 100}%`;
-    barSupport.style.width = `${(supportCost / maxCost) * 100}%`;
-    barMisc.style.width = `${(miscCost / maxCost) * 100}%`;
-  }
-
-  // ----------------------------------------
-  // LOCAL DYNAMIC NLP PARSER & QUIZ GENERATOR
+  // 9. LOCAL DYNAMIC NLP PARSER & QUIZ GENERATOR
   // ----------------------------------------
   function generateLocalNLPData(text) {
-    // 1. Sentence splitting and cleaning
+    // Standard cleaning
     const sentences = text.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 15);
     
-    // Fallback if the text is too short or lacks full sentences
     while (sentences.length < 5) {
       sentences.push("Reviewing standard NCERT syllabus concepts for board preparations.");
     }
     
-    // Create 5 structured bullet summaries
     const summary = [];
     for (let i = 0; i < 5; i++) {
       const words = sentences[i].split(" ");
@@ -866,16 +1018,13 @@ document.addEventListener("DOMContentLoaded", () => {
       summary.push(`<strong>${firstTwo}:</strong> ${rest}`);
     }
 
-    // 2. Term extraction for dynamic quiz options
     const allWords = text.replace(/[^a-zA-Z ]/g, "").split(" ").map(w => w.trim()).filter(w => w.length > 5);
     const uniqueWords = [...new Set(allWords)].slice(0, 8);
     
-    // Fallback if not enough unique words are extracted
     while (uniqueWords.length < 4) {
       uniqueWords.push("Syllabus", "Concept", "Evaluation", "System");
     }
 
-    // Build 5 dynamic questions
     const quiz = [
       {
         q: `What is the primary academic focus of the passage: "${sentences[0].substring(0, 60)}..."?`,
