@@ -1003,6 +1003,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // 9. LOCAL DYNAMIC NLP PARSER & QUIZ GENERATOR
   // ----------------------------------------
   function generateLocalNLPData(text) {
+    // Helper to shuffle options and correct index
+    function shuffleOptions(qText, optionsArray, correctIdx) {
+      const correctText = optionsArray[correctIdx];
+      const shuffled = [...optionsArray].sort(() => Math.random() - 0.5);
+      const newCorrectIdx = shuffled.indexOf(correctText);
+      return {
+        q: qText,
+        options: shuffled,
+        correct: newCorrectIdx
+      };
+    }
+
     // Standard cleaning
     const sentences = text.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 15);
     
@@ -1026,56 +1038,56 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const quiz = [
-      {
-        q: `What is the primary academic focus of the passage: "${sentences[0].substring(0, 60)}..."?`,
-        options: [
+      shuffleOptions(
+        `What is the primary academic focus of the passage: "${sentences[0].substring(0, 60)}..."?`,
+        [
           sentences[0].split(" ").slice(0, 4).join(" "),
           "A completely deleted board syllabus topic",
           "An advanced college-level research paper",
           "A non-scholastic extra-curricular activity"
         ],
-        correct: 0
-      },
-      {
-        q: `Which of the following terms plays a central role in this textbook segment?`,
-        options: [
+        0
+      ),
+      shuffleOptions(
+        `Which of the following terms plays a central role in this textbook segment?`,
+        [
           uniqueWords[0],
           uniqueWords[1] ? uniqueWords[1] : "Syllabus Standard",
           "An unrelated chemistry equation",
           "An ancient historical myth"
         ],
-        correct: 0
-      },
-      {
-        q: `Complete the following concept based on the text: "${sentences[2].substring(0, 40)}..."`,
-        options: [
+        0
+      ),
+      shuffleOptions(
+        `Complete the following concept based on the text: "${sentences[2].substring(0, 40)}..."`,
+        [
           sentences[2].split(" ").slice(0, 5).join(" "),
           "Is a minor point of negligible relevance",
           "Is not applicable under CBSE rules",
           "Is a localized state board exception"
         ],
-        correct: 0
-      },
-      {
-        q: `Which of the following is highlighted as a critical terminology in this context?`,
-        options: [
+        0
+      ),
+      shuffleOptions(
+        `Which of the following is highlighted as a critical terminology in this context?`,
+        [
           uniqueWords[2] ? uniqueWords[2] : "Syllabus",
           uniqueWords[3] ? uniqueWords[3] : "Academic Study",
           "A generic unrelated verb",
           "None of the above"
         ],
-        correct: 0
-      },
-      {
-        q: `What is the core learning outcome intended for a Class 10 student reading this?`,
-        options: [
+        0
+      ),
+      shuffleOptions(
+        `What is the core learning outcome intended for a Class 10 student reading this?`,
+        [
           "Logical comprehension and structured concept recall",
           "Vague, unguided internet browsing",
           "External college-level analysis",
           "Rote memorization without understanding"
         ],
-        correct: 0
-      }
+        0
+      )
     ];
 
     return {
